@@ -1,16 +1,44 @@
 import { useForm } from "react-hook-form"
+import { useDispatch, useSelector } from "react-redux"
 import styled from "styled-components"
-import Api from "../../utils/api/Api"
+import { fetchingAction, rejectedAction, resolvedAction } from "../../utils/store/store"
+import { connexionLoginAction, connexionRememberUserAction } from "../../features/connexion"
 
 
-function LoginForm(){
+function LoginForm({api}){
 
-    const { register, handleSubmit, formState: {errors}} = useForm()
-
-    const onSubmit = (data) => {
-        
+    const { register, handleSubmit, formState: {errors}, reset} = useForm()
+    const dispatch = useDispatch()
+    const hasError = useSelector(state => state.fetch.error !== null)
+    const error = useSelector(state => state.fetch.error)
+    let errMsg
+    if(hasError){
+        errMsg = error.message.split("Error: ")[1]
     }
 
+    const onSubmit = async (data) => {
+        
+        dispatch(fetchingAction())
+        const result = await api.postUserLogin(data.username,data.password)
+        if(result.status > 200){
+            dispatch(rejectedAction(result))
+        }else{
+            dispatch(resolvedAction(result))
+            dispatch(connexionLoginAction())
+            if(data.rememberUser){
+                localStorage.setItem("token", result.body.token)
+                dispatch(connexionRememberUserAction())
+            }else{
+                sessionStorage.setItem("token", result.body.token)
+            }
+            
+        }
+        reset({
+            username: "",
+            password: "",
+            rememberUser: false
+        })
+    }
 
     return (
         <StyledForm onSubmit={handleSubmit(onSubmit)}>
@@ -18,14 +46,16 @@ function LoginForm(){
                 <label htmlFor="username">Username</label>
                 <input type="text" id="username" {...register("username", {required: true})}/>
                 {errors.username && <span className="error-msg">This field is required</span>}
+                {!errors.username && errMsg === "User not found!" && <span className="error-msg">Incorrect username</span>}
             </div>
             <div className="input-wrapper">
                 <label htmlFor="password">Password</label>
                 <input type="password" id="password" {...register("password", {required: true})} />
                 {errors.password && <span className="error-msg">This field is required</span>}
+                {!errors.password && errMsg === "Password is invalid" && <span className="error-msg">Incorrect password</span>}
             </div>
             <div className="input-remember">
-                <input type="checkbox" id="remember-me" />
+                <input type="checkbox" id="remember-me" {...register("rememberUser")}/>
                 <label htmlFor="remember-me">Remember me</label>
             </div>
             <button className="sign-in-button">Sign In</button>

@@ -1,15 +1,32 @@
 import styled from "styled-components"
 import LoginForm from "../../Components/LoginForm"
+import { connexionLoginAction } from "../../features/connexion"
+import { useSelector, useDispatch } from "react-redux"
+import { Navigate } from "react-router-dom"
+import { profileInitAction } from "../../features/profile"
 
 
-function SignIn(){
+function SignIn({api}){
+
+    const dispatch = useDispatch()
+    const isLogged = useSelector(state => state.connexion.isLogged)
+
+    /*if(localStorage.length !== 0){
+        dispatch(connexionLoginAction())
+        //dispatch(profileInitAction(JSON.parse(localStorage.getItem("user"))))
+    }else if(sessionStorage.length !== 0){
+        dispatch(connexionLoginAction())
+        //dispatch(profileInitAction(JSON.parse(sessionStorage.getItem("user"))))
+    }*/
     
-    return (
+    return isLogged ? 
+    (<Navigate to="/profile" />)
+    : (
         <Container>
             <section className="sign-in-content">
                 <i className="fa fa-user-circle sign-in-icon"></i>
                 <h1>Sign In</h1>
-                <LoginForm />
+                <LoginForm api={api}/>
             </section>
         </Container>
     )

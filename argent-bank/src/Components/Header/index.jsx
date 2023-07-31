@@ -1,24 +1,61 @@
 import styled from "styled-components";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import LogoUrl from "../../assets/img/argentBankLogo.png"
+import { useDispatch, useSelector } from "react-redux";
+import { connexionLogoutAction } from "../../features/connexion";
 
 function Header(){
+
+    const isLogged = useSelector(state => state.connexion.isLogged)
+    const user = useSelector(state => state.profile.user)
+    const rememberUser = useSelector(state => state.connexion.rememberUser)
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+
+    const logOutEvent = (e) => {
+        e.preventDefault()
+        if(rememberUser){
+            localStorage.clear()
+        }else{
+            sessionStorage.clear()
+        }
+        
+        
+        dispatch(connexionLogoutAction())
+        navigate("/")
+    }
+
+
     return (
         <StyledHeader>
             <nav className="main-nav">
-                <StyledNavLink to="/" className="main-nav-logo">
+                <NavLink to="/" className="main-nav-logo">
                     <img
                     className="main-nav-logo-image"
                     src={LogoUrl}
                     alt="Argent Bank Logo"
                     />
                     <h1 className="sr-only">Argent Bank</h1>
-                </StyledNavLink>
+                </NavLink>
                 <div>
-                    <StyledNavLink className="main-nav-item" to="/signIn">
+                    {
+                    isLogged ? 
+                    (<>
+                        <NavLink className="main-nav-item" to="/profile">
+                            <i className="fa fa-user-circle"></i>
+                            {user.firstName}
+                        </NavLink>
+                        <Link className="main-nav-item" onClick={e => logOutEvent(e)}>
+                            <i className="fa fa-sign-out"></i>
+                            Sign Out
+                        </Link>
+                    </>)
+                    :
+                    (<NavLink className="main-nav-item" to="/signIn">
                         <i className="fa fa-user-circle"></i>
-                        <p>Sign In</p>
-                    </StyledNavLink>
+                        Sign In
+                    </NavLink>)
+                    }
                 </div>
             </nav>
         </StyledHeader>
@@ -46,14 +83,14 @@ const StyledHeader = styled.header`
         }
 
     .main-nav-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        
         text-decoration: none;
         margin-right: 0.5rem;
+        font-weight: bold;
+        color: #2c3e50;
         }
 
-    .main-nav-item p:hover {
+    .main-nav-item:hover {
         text-decoration: underline;
         }
 
@@ -61,16 +98,10 @@ const StyledHeader = styled.header`
         margin-right: 5px;
     }
 
-`
-
-const StyledNavLink = styled(NavLink)`
-
-    font-weight: bold;
-    color: #2c3e50;
-
     .active{
         color: #42b983;
     }
 
 `
+
 export default Header

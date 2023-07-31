@@ -4,7 +4,10 @@ import Feature from "../../Components/Feature"
 import IconChat from "../../assets/img/icon-chat.png"
 import IconMoney from "../../assets/img/icon-money.png"
 import IconSecurity from "../../assets/img/icon-security.png"
-import { useEffect } from "react"
+import { useDispatch } from "react-redux"
+import { connexionLoginAction } from "../../features/connexion"
+import { profileInitAction } from "../../features/profile"
+
 
 
 const features = [
@@ -26,24 +29,16 @@ const features = [
 ]
 
 function Home(){
+    
+    const dispatch = useDispatch()
 
-    useEffect(() => {
-        async function FetchData(){
-
-            const response = await fetch("http://localhost:3001/api/v1/user/profile", {
-                method: "POST",
-                headers: {
-                    'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0YmZmODg0ZDc1MDg5MjE5Y2Y3NDRjZSIsImlhdCI6MTY5MDU0NTA4NSwiZXhwIjoxNjkwNjMxNDg1fQ._ilKb4XSz1ohHAeHhuEhXpVYjVqfn6HShzcumy6QWr8",
-                    'Content-Type': 'application/json'
-                }
-            })
-
-            const data = await response.json()
-            console.log(data)
-        }
-
-        FetchData()
-    },[])
+    /*if(localStorage.length !== 0){
+        dispatch(connexionLoginAction())
+        //dispatch(profileInitAction(JSON.parse(localStorage.getItem("user"))))
+    }else if(sessionStorage.length !== 0){
+        dispatch(connexionLoginAction())
+        //dispatch(profileInitAction(JSON.parse(sessionStorage.getItem("user"))))
+    }*/
 
     return (
         <Container>

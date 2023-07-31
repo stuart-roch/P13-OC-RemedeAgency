@@ -3,14 +3,14 @@ import styled from "styled-components"
 function AccountElement({title,amount,description}){
 
     return (
-        <Container class="account">
-            <div class="account-content-wrapper">
-                <h3 class="account-title">{title}</h3>
-                <p class="account-amount">{"$"+amount}</p>
-                <p class="account-amount-description">{description}</p>
+        <Container className="account">
+            <div className="account-content-wrapper">
+                <h3 className="account-title">{title}</h3>
+                <p className="account-amount">{"$"+amount}</p>
+                <p className="account-amount-description">{description}</p>
             </div>
-            <div class="account-content-wrapper cta">
-                <button class="transaction-button">View transactions</button>
+            <div className="account-content-wrapper cta">
+                <button className="transaction-button">View transactions</button>
             </div>
       </Container>
     )
@@ -67,9 +67,9 @@ const Container = styled.section`
       }
 
     @media (min-width: 720px) {
-        .account {
-          flex-direction: row;
-        }
+        
+        flex-direction: row;
+        
       
         .account-content-wrapper.cta {
           flex: 0;

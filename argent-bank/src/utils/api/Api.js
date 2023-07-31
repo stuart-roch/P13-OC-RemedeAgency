@@ -4,7 +4,9 @@ class Api {
         this.baseUrl = baseUrl
     }
 
-    postUserLogin = async (user) => {
+    postUserLogin = async (username,password) => {
+        
+        const user = {email: username , password: password}
 
         const response = await fetch(`${this.baseUrl}/user/login`,{
             method: "POST",
@@ -18,7 +20,9 @@ class Api {
         
     }
 
-    postUserSignUp = async (user) => { 
+    postUserSignUp = async (email, password, firstName, lastName) => { 
+
+        const user = {email: email , password: password, firstName: firstName, lastName: lastName}
 
         const response = await fetch(`${this.baseUrl}/user/signup`,{
             method: "POST",
@@ -42,10 +46,12 @@ class Api {
             },
         })
 
-        return await response.json("http://localhost:3001/api/v1")
+        return await response.json()
     }
 
-    patchUserProfile = async (user, headers) => {
+    patchUserProfile = async (firstName, lastName, headers) => {
+
+        const user = {firstName: firstName, lastName: lastName}
 
         const response = await fetch(`${this.baseUrl}/user/profile`,{
             method: "PATCH",

@@ -1,5 +1,11 @@
+import { useSelector, useDispatch } from "react-redux"
+import { Navigate } from "react-router-dom"
 import styled from "styled-components"
 import AccountElement from "../../Components/AccountElement"
+import EditProfileForm from "../../Components/EditProfileForm"
+import { profileInitAction, profileStartEditAction } from "../../features/profile" 
+import { useEffect } from "react"
+import { fetchingAction, resolvedAction, rejectedAction } from "../../utils/store/store"
 
 
 const accounts = [
@@ -20,17 +26,65 @@ const accounts = [
     },
 ]
 
-function Profile(){
+function Profile({api}){
 
-    return (
+    const dispatch = useDispatch()
+    const isEditing = useSelector(state => state.profile.editing)
+    const isLogged = useSelector(state => state.connexion.isLogged)
+    const user = useSelector(state => state.profile.user)
+    const rememberUser = useSelector(state => state.connexion.rememberUser)
+
+    useEffect(() => {
+
+        async function fetchData(){
+
+            const header = rememberUser ? 
+                {'Authorization': `Bearer ${localStorage.getItem("token")}`}:
+                {'Authorization': `Bearer ${sessionStorage.getItem("token")}`}            
+
+            dispatch(fetchingAction())
+            const result = await api.postUserProfile(header)
+            
+            if(result.status > 200){
+                dispatch(rejectedAction(result))
+            }else{
+                const user = { id: result.body.id, firstName: result.body.firstName, lastName: result.body.lastName }
+                if(rememberUser){
+                    localStorage.setItem("user",JSON.stringify(user))    
+                }else{
+                    sessionStorage.setItem("user",JSON.stringify(user))
+                }
+                dispatch(resolvedAction(result))
+                dispatch(profileInitAction(user))
+            }
+        }
+        if(user.id === null){
+            fetchData()
+        }
+        
+
+    },[api,dispatch,user.id,rememberUser])
+    
+    return !isLogged ? 
+    (<Navigate to="/signIn" />)
+    :
+    (
         <Container>
-            <div class="header">
-                <h1>Welcome back<br />Tony Jarvis!</h1>
-                <button class="edit-button">Edit Name</button>
+            <div className="header">
+            {isEditing ? 
+                (<>
+                    <h1>Welcome back</h1>
+                    <EditProfileForm user={user}/>
+                </>) :
+                (<>
+                    <h1>Welcome back<br />{`${user.firstName} ${user.lastName}!`}</h1>
+                    <button className="edit-button" onClick={() => dispatch(profileStartEditAction())}>Edit Name</button>
+                </>)
+                }
             </div>
             {accounts.map(
                 account => 
-                    <AccountElement title={account.title} amount={account.amount} description={account.description}/>
+                    <AccountElement key={account.title} title={account.title} amount={account.amount} description={account.description}/>
                     )
                 }
         </Container>
