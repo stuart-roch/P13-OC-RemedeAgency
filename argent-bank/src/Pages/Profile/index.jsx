@@ -6,6 +6,7 @@ import EditProfileForm from "../../Components/EditProfileForm"
 import { profileInitAction, profileStartEditAction } from "../../features/profile" 
 import { useEffect } from "react"
 import { fetchingAction, resolvedAction, rejectedAction } from "../../utils/store/store"
+import { connexionLoginAction, connexionRememberUserAction } from "../../features/connexion"
 
 
 const accounts = [
@@ -33,6 +34,18 @@ function Profile({api}){
     const isLogged = useSelector(state => state.connexion.isLogged)
     const user = useSelector(state => state.profile.user)
     const rememberUser = useSelector(state => state.connexion.rememberUser)
+    const isLoading = useSelector(state => state.fetch.status === "pending")
+
+    useEffect(() => {
+        if(localStorage.length !== 0){
+            dispatch(connexionLoginAction())
+            dispatch(connexionRememberUserAction())
+            dispatch(profileInitAction(JSON.parse(localStorage.getItem("user"))))
+        }else if(sessionStorage.length !== 0){
+            dispatch(connexionLoginAction())
+            dispatch(profileInitAction(JSON.parse(sessionStorage.getItem("user"))))
+        }
+    },[dispatch])
 
     useEffect(() => {
 
@@ -58,23 +71,21 @@ function Profile({api}){
                 dispatch(profileInitAction(user))
             }
         }
-        if(user.id === null){
-            fetchData()
-        }
-        
 
+        fetchData()
+    
     },[api,dispatch,user.id,rememberUser])
     
     return !isLogged ? 
     (<Navigate to="/signIn" />)
     :
-    (
+    (!isLoading &&
         <Container>
             <div className="header">
             {isEditing ? 
                 (<>
                     <h1>Welcome back</h1>
-                    <EditProfileForm user={user}/>
+                    <EditProfileForm api={api} user={user} rememberUser={rememberUser}/>
                 </>) :
                 (<>
                     <h1>Welcome back<br />{`${user.firstName} ${user.lastName}!`}</h1>

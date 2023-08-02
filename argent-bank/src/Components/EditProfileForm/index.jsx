@@ -4,15 +4,15 @@ import { profileEndEditAction, profileEditAction } from "../../features/profile"
 import styled from "styled-components"
 
 
-const EditProfileForm = ({api, user}) => {
+const EditProfileForm = ({api, user, rememberUser}) => {
 
     const { register, handleSubmit, formState: {errors}, reset} = useForm()
     const dispatch = useDispatch()
     //const user = useSelector((state) => (state.profile.user))
-    const rememberUser = useSelector(state => state.connexion.rememberUser)
+    //const rememberUser = useSelector(state => state.connexion.rememberUser)
 
     const onSubmit = async (data) => {
-        //const result = await api.patchUserProfile(data.firstName, data.lastName, header)
+        
 
         const header = rememberUser ? 
                 {'Authorization': `Bearer ${localStorage.getItem("token")}`}:
@@ -22,19 +22,28 @@ const EditProfileForm = ({api, user}) => {
             if(data.lastName !== ''){
                 const result = await api.patchUserProfile(user.firstName, data.lastName, header)
                 if(result.status === 200){
-                    dispatch(profileEditAction({lastName: data.lastName}))
+                    rememberUser ? 
+                        localStorage.setItem("user",{...JSON.parse(localStorage.getItem("user")), lastName: result.body.lastName}) : 
+                        sessionStorage.setItem("user",{...JSON.parse(sessionStorage.getItem("user")), lastName: result.body.lastName})
+                    dispatch(profileEditAction({lastName: result.body.lastName}))
                 }
             }
         }else{
             if(data.lastName === ''){
                 const result = await api.patchUserProfile(data.firstName, user.lastName, header)
                 if(result.status === 200){
-                    dispatch(profileEditAction({firstName: data.firstName}))
+                    rememberUser ? 
+                        localStorage.setItem("user",JSON.stringify({...JSON.parse(localStorage.getItem("user")), firstName: result.body.firstNameName})) : 
+                        sessionStorage.setItem("user",JSON.stringify({...JSON.parse(sessionStorage.getItem("user")), firstName: result.body.firstName}))
+                    dispatch(profileEditAction({firstName: result.body.firstName}))
                 }
             }else{
                 const result = await api.patchUserProfile(data.firstName, data.lastName, header)
                 if(result.status === 200){
-                    dispatch(profileEditAction({firstName: data.firstName, lastName: data.lastName}))
+                    rememberUser ? 
+                        localStorage.setItem("user",JSON.stringify({...JSON.parse(localStorage.getItem("user")), firstName: result.body.firstName, lastName: result.body.lastName})) : 
+                        sessionStorage.setItem("user",JSON.stringify({...JSON.parse(sessionStorage.getItem("user")), firstName: result.body.firstName, lastName: result.body.lastName}))
+                    dispatch(profileEditAction({firstName: result.body.firstName, lastName: result.body.lastName}))
                 }
             }
         }
@@ -59,7 +68,8 @@ const EditProfileForm = ({api, user}) => {
                         value: /^[a-zA-Z]*$/,
                         message: "Only alphabetic character allowed"
                     }})}/>
-                </div>
+                    {errors?.firstName && <p className="error-msg">{errors.firstName.message}</p>}
+                </div>  
                 <div className="input-wrapper">
                     {/*<label htmlFor="lastName">Lastname</label>*/}
                     <input 

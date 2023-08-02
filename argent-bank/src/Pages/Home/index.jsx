@@ -5,8 +5,9 @@ import IconChat from "../../assets/img/icon-chat.png"
 import IconMoney from "../../assets/img/icon-money.png"
 import IconSecurity from "../../assets/img/icon-security.png"
 import { useDispatch } from "react-redux"
-import { connexionLoginAction } from "../../features/connexion"
+import { connexionLoginAction, connexionRememberUserAction } from "../../features/connexion"
 import { profileInitAction } from "../../features/profile"
+import { useEffect } from "react"
 
 
 
@@ -31,14 +32,17 @@ const features = [
 function Home(){
     
     const dispatch = useDispatch()
-
-    /*if(localStorage.length !== 0){
-        dispatch(connexionLoginAction())
-        //dispatch(profileInitAction(JSON.parse(localStorage.getItem("user"))))
-    }else if(sessionStorage.length !== 0){
-        dispatch(connexionLoginAction())
-        //dispatch(profileInitAction(JSON.parse(sessionStorage.getItem("user"))))
-    }*/
+    useEffect(() => {
+        if(localStorage.length !== 0){
+            dispatch(connexionLoginAction())
+            dispatch(connexionRememberUserAction())
+            dispatch(profileInitAction(JSON.parse(localStorage.getItem("user"))))
+        }else if(sessionStorage.length !== 0){
+            dispatch(connexionLoginAction())
+            dispatch(profileInitAction(JSON.parse(sessionStorage.getItem("user"))))
+        }
+    },[dispatch])
+    
 
     return (
         <Container>
