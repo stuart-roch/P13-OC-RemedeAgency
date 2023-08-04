@@ -15,7 +15,7 @@ const EditProfileForm = ({api, user, rememberUser}) => {
         
 
         const header = rememberUser ? 
-                {'Authorization': `Bearer ${localStorage.getItem("token")}`}:
+                {'Authorization': `Bearer ${localStorage.getItem("token")}`} :
                 {'Authorization': `Bearer ${sessionStorage.getItem("token")}`}
 
         if(data.firstName === ''){
@@ -23,8 +23,10 @@ const EditProfileForm = ({api, user, rememberUser}) => {
                 const result = await api.patchUserProfile(user.firstName, data.lastName, header)
                 if(result.status === 200){
                     rememberUser ? 
-                        localStorage.setItem("user",{...JSON.parse(localStorage.getItem("user")), lastName: result.body.lastName}) : 
-                        sessionStorage.setItem("user",{...JSON.parse(sessionStorage.getItem("user")), lastName: result.body.lastName})
+                        localStorage.setItem("user",
+                            JSON.stringify({...JSON.parse(localStorage.getItem("user")), lastName: result.body.lastName})) : 
+                        sessionStorage.setItem("user",
+                            JSON.stringify({...JSON.parse(sessionStorage.getItem("user")), lastName: result.body.lastName}))
                     dispatch(profileEditAction({lastName: result.body.lastName}))
                 }
             }
@@ -33,16 +35,22 @@ const EditProfileForm = ({api, user, rememberUser}) => {
                 const result = await api.patchUserProfile(data.firstName, user.lastName, header)
                 if(result.status === 200){
                     rememberUser ? 
-                        localStorage.setItem("user",JSON.stringify({...JSON.parse(localStorage.getItem("user")), firstName: result.body.firstNameName})) : 
-                        sessionStorage.setItem("user",JSON.stringify({...JSON.parse(sessionStorage.getItem("user")), firstName: result.body.firstName}))
+                        localStorage.setItem("user",
+                            JSON.stringify({...JSON.parse(localStorage.getItem("user")), firstName: result.body.firstNameName})) : 
+                        sessionStorage.setItem("user",
+                            JSON.stringify({...JSON.parse(sessionStorage.getItem("user")), firstName: result.body.firstName}))
                     dispatch(profileEditAction({firstName: result.body.firstName}))
                 }
             }else{
                 const result = await api.patchUserProfile(data.firstName, data.lastName, header)
                 if(result.status === 200){
                     rememberUser ? 
-                        localStorage.setItem("user",JSON.stringify({...JSON.parse(localStorage.getItem("user")), firstName: result.body.firstName, lastName: result.body.lastName})) : 
-                        sessionStorage.setItem("user",JSON.stringify({...JSON.parse(sessionStorage.getItem("user")), firstName: result.body.firstName, lastName: result.body.lastName}))
+                        localStorage.setItem("user",
+                            JSON.stringify({...JSON.parse(localStorage.getItem("user")),
+                                firstName: result.body.firstName, lastName: result.body.lastName})) : 
+                        sessionStorage.setItem("user",
+                            JSON.stringify({...JSON.parse(sessionStorage.getItem("user")),
+                                firstName: result.body.firstName, lastName: result.body.lastName}))
                     dispatch(profileEditAction({firstName: result.body.firstName, lastName: result.body.lastName}))
                 }
             }
@@ -64,10 +72,10 @@ const EditProfileForm = ({api, user, rememberUser}) => {
                     id="firstName" 
                     placeholder={user.firstName} 
                     {...register("firstName",
-                    {pattern: {
-                        value: /^[a-zA-Z]*$/,
-                        message: "Only alphabetic character allowed"
-                    }})}/>
+                        {pattern: {
+                            value: /^[a-zA-Z]*$/,
+                            message: "Only alphabetic character allowed"
+                        }})}/>
                     {errors?.firstName && <p className="error-msg">{errors.firstName.message}</p>}
                 </div>  
                 <div className="input-wrapper">
@@ -77,10 +85,10 @@ const EditProfileForm = ({api, user, rememberUser}) => {
                     id="lastName" 
                     placeholder={user.lastName} 
                     {...register("lastName",
-                    {pattern: {
-                        value: /^[a-zA-Z]*$/,
-                        message: "Only alphabetic character allowed"
-                    }})}/>
+                        {pattern: {
+                            value: /^[a-zA-Z]*$/,
+                            message: "Only alphabetic character allowed"
+                        }})}/>
                     {errors?.lastName && <p className="error-msg">{errors.lastName.message}</p>}
                 </div>
             </div>

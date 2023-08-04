@@ -1,9 +1,10 @@
 import styled from "styled-components"
 import LoginForm from "../../Components/LoginForm"
-import { connexionLoginAction } from "../../features/connexion"
+import { connexionLoginAction, connexionRememberUserAction } from "../../features/connexion"
 import { useSelector, useDispatch } from "react-redux"
 import { Navigate } from "react-router-dom"
 import { profileInitAction } from "../../features/profile"
+import { useEffect } from "react"
 
 
 function SignIn({api}){
@@ -11,13 +12,16 @@ function SignIn({api}){
     const dispatch = useDispatch()
     const isLogged = useSelector(state => state.connexion.isLogged)
 
-    /*if(localStorage.length !== 0){
-        dispatch(connexionLoginAction())
-        //dispatch(profileInitAction(JSON.parse(localStorage.getItem("user"))))
-    }else if(sessionStorage.length !== 0){
-        dispatch(connexionLoginAction())
-        //dispatch(profileInitAction(JSON.parse(sessionStorage.getItem("user"))))
-    }*/
+    useEffect(() => {
+        if(localStorage.length !== 0){
+            dispatch(connexionLoginAction())
+            dispatch(connexionRememberUserAction())
+            dispatch(profileInitAction(JSON.parse(localStorage.getItem("user"))))
+        }else if(sessionStorage.length !== 0){
+            dispatch(connexionLoginAction())
+            dispatch(profileInitAction(JSON.parse(sessionStorage.getItem("user"))))
+        }
+    },[dispatch])
     
     return isLogged ? 
     (<Navigate to="/profile" />)
