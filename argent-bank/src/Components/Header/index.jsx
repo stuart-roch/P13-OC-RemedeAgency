@@ -3,6 +3,7 @@ import { NavLink, Link, useNavigate } from "react-router-dom";
 import LogoUrl from "../../assets/img/argentBankLogo.png"
 import { useDispatch, useSelector } from "react-redux";
 import { connexionLogoutAction } from "../../features/connexion";
+import { voidAction } from "../../utils/store/store";
 
 function Header(){
 
@@ -11,6 +12,8 @@ function Header(){
     const rememberUser = useSelector(state => state.connexion.rememberUser)
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const hasError = useSelector(state => state.fetch.error !== null)
+    const isLoading = useSelector(state => state.fetch.status === "pending")
 
     const logOutEvent = (e) => {
         e.preventDefault()
@@ -20,8 +23,8 @@ function Header(){
             sessionStorage.clear()
         }
         
-        
         dispatch(connexionLogoutAction())
+        dispatch(voidAction())
         navigate("/")
     }
 
@@ -43,7 +46,7 @@ function Header(){
                     (<>
                         <NavLink className="main-nav-item" to="/profile">
                             <i className="fa fa-user-circle"></i>
-                            {user.firstName}
+                            {!hasError && !isLoading && user.firstName}
                         </NavLink>
                         <Link className="main-nav-item" onClick={e => logOutEvent(e)}>
                             <i className="fa fa-sign-out"></i>

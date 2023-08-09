@@ -3,9 +3,10 @@ import { Navigate } from "react-router-dom"
 import styled from "styled-components"
 import AccountElement from "../../Components/AccountElement"
 import EditProfileForm from "../../Components/EditProfileForm"
+import Loader from "../../Components/Loader"
 import { profileInitAction, profileStartEditAction } from "../../features/profile" 
 import { useEffect } from "react"
-import { fetchingAction, resolvedAction, rejectedAction } from "../../utils/store/store"
+import { fetchingAction, resolvedAction, rejectedAction, voidAction } from "../../utils/store/store"
 import { connexionLoginAction, connexionRememberUserAction } from "../../features/connexion"
 
 
@@ -35,16 +36,26 @@ function Profile({api}){
     const user = useSelector(state => state.profile.user)
     const rememberUser = useSelector(state => state.connexion.rememberUser)
     const isLoading = useSelector(state => state.fetch.status === "pending")
+    const hasError = useSelector(state => state.fetch.error !== null)
+    const error = useSelector(state => state.fetch.error)
+    let errMsg
+    if(hasError){
+        errMsg = error.message.split("Error: ")[1]
+    }
 
     useEffect(() => {
+
         if(localStorage.length !== 0){
             dispatch(connexionLoginAction())
             dispatch(connexionRememberUserAction())
             dispatch(profileInitAction(JSON.parse(localStorage.getItem("user"))))
+            dispatch(voidAction())
         }else if(sessionStorage.length !== 0){
             dispatch(connexionLoginAction())
             dispatch(profileInitAction(JSON.parse(sessionStorage.getItem("user"))))
+            dispatch(voidAction())
         }
+
     },[dispatch])
 
     useEffect(() => {
@@ -54,33 +65,39 @@ function Profile({api}){
             const header = rememberUser ? 
                 {'Authorization': `Bearer ${localStorage.getItem("token")}`}:
                 {'Authorization': `Bearer ${sessionStorage.getItem("token")}`}            
-
-            dispatch(fetchingAction())
-            const result = await api.postUserProfile(header)
-            
-            if(result.status > 200){
-                dispatch(rejectedAction(result))
-            }else{
-                const user = { id: result.body.id, firstName: result.body.firstName, lastName: result.body.lastName }
-                if(rememberUser){
-                    localStorage.setItem("user",JSON.stringify(user))    
+            try{
+                dispatch(fetchingAction())
+                const result = await api.postUserProfile(header)
+                
+                if(result.status > 200){
+                    dispatch(rejectedAction(result))
                 }else{
-                    sessionStorage.setItem("user",JSON.stringify(user))
+                    const user = { id: result.body.id, firstName: result.body.firstName, lastName: result.body.lastName }
+                    if(rememberUser){
+                        localStorage.setItem("user",JSON.stringify(user))    
+                    }else{
+                        sessionStorage.setItem("user",JSON.stringify(user))
+                    }
+                    dispatch(resolvedAction(result))
+                    dispatch(profileInitAction(user))
                 }
-                dispatch(resolvedAction(result))
-                dispatch(profileInitAction(user))
+            }catch(error){
+                dispatch(rejectedAction({message : "Error: Server issue"}))
             }
         }
 
         fetchData()
+        
     
     },[api,dispatch,user.id,rememberUser])
+
+    
     
     return !isLogged ? 
     (<Navigate to="/signIn" />)
     :
-    (!isLoading &&
-        <Container>
+    (isLoading ? <Container> <Loader className="profile-loader"/> </Container> : !(hasError && errMsg === "Server issue") ?
+        (<Container>
             <div className="header">
             {isEditing ? 
                 (<>
@@ -98,7 +115,10 @@ function Profile({api}){
                     <AccountElement key={account.title} title={account.title} amount={account.amount} description={account.description}/>
                     )
                 }
-        </Container>
+        </Container>) :
+        (<Container>
+            <p className="err-msg">Problème technique, veuillez rafraichir la page</p>
+        </Container>)
     )
 }
 
@@ -106,6 +126,11 @@ const Container = styled.main`
 
     background-color: #12002b;
     flex:1;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
 
     .edit-button {
         border-color: #00bc77;
@@ -119,5 +144,12 @@ const Container = styled.main`
         color: #fff;
         margin-bottom: 2rem;
     }
+
+    .err-msg{
+        color:red;
+        font-size: 3rem;
+    }
+    
+    
 `
 export default Profile

@@ -51,8 +51,6 @@ class Api {
 
     patchUserProfile = async (firstName, lastName, headers) => {
 
-        console.log("hi")
-
         const user = {firstName: firstName, lastName: lastName}
 
         const response = await fetch(`${this.baseUrl}/user/profile`,{

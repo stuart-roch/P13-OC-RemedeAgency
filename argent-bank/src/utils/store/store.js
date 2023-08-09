@@ -5,6 +5,7 @@ import connexionReducer from "../../features/connexion"
 const FETCHING = "fetching"
 const RESOLVED = "resolved"
 const REJECTED = "rejected"
+const VOID = "void"
 
 export const fetchingAction = () => ({ 
     type: FETCHING 
@@ -18,6 +19,10 @@ export const resolvedAction = (data) => ({
 export const rejectedAction = (error) => ({
     type: REJECTED, 
     payload: error 
+})
+
+export const voidAction = () => ({
+    type: VOID
 })
 
 function fetchingReducer(state = {status: "void", data: null, error: null},action){
@@ -49,6 +54,10 @@ function fetchingReducer(state = {status: "void", data: null, error: null},actio
         }
         
         return {...state}
+    }
+
+    if(action.type === VOID){
+        return {status: "void", data: null, error: null}
     }
 
     return state

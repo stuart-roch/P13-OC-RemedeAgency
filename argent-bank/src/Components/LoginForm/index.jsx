@@ -1,13 +1,16 @@
 import { useForm } from "react-hook-form"
 import { useDispatch, useSelector } from "react-redux"
 import styled from "styled-components"
-import { fetchingAction, rejectedAction, resolvedAction } from "../../utils/store/store"
+import { fetchingAction, rejectedAction, resolvedAction, voidAction } from "../../utils/store/store"
 import { connexionLoginAction, connexionRememberUserAction } from "../../features/connexion"
+
 
 
 function LoginForm({api}){
 
     const { register, handleSubmit, formState: {errors}, reset} = useForm()
+    const username = register("username", {required: true})
+    const password = register("password", {required: true})
     const dispatch = useDispatch()
     const hasError = useSelector(state => state.fetch.error !== null)
     const error = useSelector(state => state.fetch.error)
@@ -18,21 +21,25 @@ function LoginForm({api}){
 
     const onSubmit = async (data) => {
         
-        dispatch(fetchingAction())
-        const result = await api.postUserLogin(data.username,data.password)
-        if(result.status > 200){
-            dispatch(rejectedAction(result))
-        }else{
-            dispatch(resolvedAction(result))
-            dispatch(connexionLoginAction())
-            if(data.rememberUser){
-                localStorage.setItem("token", result.body.token)
-                dispatch(connexionRememberUserAction())
+        try{
+            dispatch(fetchingAction())
+            const result = await api.postUserLogin(data.username,data.password)
+            if(result.status > 200){
+                dispatch(rejectedAction(result))
             }else{
-                sessionStorage.setItem("token", result.body.token)
+                dispatch(resolvedAction(result))
+                dispatch(connexionLoginAction())
+                if(data.rememberUser){
+                    localStorage.setItem("token", result.body.token)
+                    dispatch(connexionRememberUserAction())
+                }else{
+                    sessionStorage.setItem("token", result.body.token)
+                }
             }
-            
+        }catch(error){
+            dispatch(rejectedAction({message: "Error: Server issue"}))
         }
+        
         reset({
             username: "",
             password: "",
@@ -44,13 +51,19 @@ function LoginForm({api}){
         <StyledForm onSubmit={handleSubmit(onSubmit)}>
             <div className="input-wrapper">
                 <label htmlFor="username">Username</label>
-                <input type="text" id="username" {...register("username", {required: true})}/>
+                <input type="text" id="username" {...username} onChange={(e) => {
+                    username.onChange(e)
+                    dispatch(voidAction())
+                    }}/>
                 {errors.username && <span className="error-msg">This field is required</span>}
                 {!errors.username && errMsg === "User not found!" && <span className="error-msg">Incorrect username</span>}
             </div>
             <div className="input-wrapper">
                 <label htmlFor="password">Password</label>
-                <input type="password" id="password" {...register("password", {required: true})} />
+                <input type="password" id="password" {...password} onChange={(e) => {
+                    password.onChange(e)
+                    dispatch(voidAction())
+                    }}/>
                 {errors.password && <span className="error-msg">This field is required</span>}
                 {!errors.password && errMsg === "Password is invalid" && <span className="error-msg">Incorrect password</span>}
             </div>
@@ -63,7 +76,6 @@ function LoginForm({api}){
     )
 
 }
-
 
 const StyledForm = styled.form`
 

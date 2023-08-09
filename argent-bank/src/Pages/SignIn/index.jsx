@@ -4,13 +4,19 @@ import { connexionLoginAction, connexionRememberUserAction } from "../../feature
 import { useSelector, useDispatch } from "react-redux"
 import { Navigate } from "react-router-dom"
 import { profileInitAction } from "../../features/profile"
-import { useEffect } from "react"
+import { useEffect } from "react"   
 
 
 function SignIn({api}){
 
     const dispatch = useDispatch()
     const isLogged = useSelector(state => state.connexion.isLogged)
+    const hasError = useSelector(state => state.fetch.error !== null)
+    const error = useSelector(state => state.fetch.error)
+    let errMsg
+    if(hasError){
+        errMsg = error.message.split("Error: ")[1]
+    }
 
     useEffect(() => {
         if(localStorage.length !== 0){
@@ -30,12 +36,12 @@ function SignIn({api}){
             <section className="sign-in-content">
                 <i className="fa fa-user-circle sign-in-icon"></i>
                 <h1>Sign In</h1>
+                {hasError && errMsg === "Server issue" && <p className="err-msg">Problème technique, veuillez réessayer ultérieurement</p>}
                 <LoginForm api={api}/>
             </section>
         </Container>
     )
 }
-
 
 const Container = styled.main`
 
@@ -44,6 +50,7 @@ const Container = styled.main`
   
     .sign-in-content {
         box-sizing: border-box;
+        position: relative;
         background-color: white;
         width: 300px;
         margin: 0 auto;
@@ -54,8 +61,12 @@ const Container = styled.main`
     .sign-in-icon {
         font-size: 5rem;
     }
-    
-    
+
+    .err-msg{
+        margin-top:5px;
+        color:red;
+        font-size:0.8rem;
+    }
     
 `
 export default SignIn

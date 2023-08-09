@@ -1,61 +1,68 @@
 import { useForm } from "react-hook-form"
-import { useDispatch, useSelector } from "react-redux"
+import { useDispatch } from "react-redux"
 import { profileEndEditAction, profileEditAction } from "../../features/profile"
 import styled from "styled-components"
+import { fetchingAction, rejectedAction, resolvedAction } from "../../utils/store/store"
 
 
 const EditProfileForm = ({api, user, rememberUser}) => {
 
     const { register, handleSubmit, formState: {errors}, reset} = useForm()
     const dispatch = useDispatch()
-    //const user = useSelector((state) => (state.profile.user))
-    //const rememberUser = useSelector(state => state.connexion.rememberUser)
 
     const onSubmit = async (data) => {
         
-
         const header = rememberUser ? 
                 {'Authorization': `Bearer ${localStorage.getItem("token")}`} :
                 {'Authorization': `Bearer ${sessionStorage.getItem("token")}`}
-
-        if(data.firstName === ''){
-            if(data.lastName !== ''){
-                const result = await api.patchUserProfile(user.firstName, data.lastName, header)
-                if(result.status === 200){
-                    rememberUser ? 
-                        localStorage.setItem("user",
-                            JSON.stringify({...JSON.parse(localStorage.getItem("user")), lastName: result.body.lastName})) : 
-                        sessionStorage.setItem("user",
-                            JSON.stringify({...JSON.parse(sessionStorage.getItem("user")), lastName: result.body.lastName}))
-                    dispatch(profileEditAction({lastName: result.body.lastName}))
-                }
-            }
-        }else{
-            if(data.lastName === ''){
-                const result = await api.patchUserProfile(data.firstName, user.lastName, header)
-                if(result.status === 200){
-                    rememberUser ? 
-                        localStorage.setItem("user",
-                            JSON.stringify({...JSON.parse(localStorage.getItem("user")), firstName: result.body.firstNameName})) : 
-                        sessionStorage.setItem("user",
-                            JSON.stringify({...JSON.parse(sessionStorage.getItem("user")), firstName: result.body.firstName}))
-                    dispatch(profileEditAction({firstName: result.body.firstName}))
+        try{
+            if(data.firstName === ''){
+                if(data.lastName !== ''){
+                    dispatch(fetchingAction())
+                    const result = await api.patchUserProfile(user.firstName, data.lastName, header)
+                    if(result.status === 200){
+                        dispatch(resolvedAction())
+                        rememberUser ? 
+                            localStorage.setItem("user",
+                                JSON.stringify({...JSON.parse(localStorage.getItem("user")), lastName: result.body.lastName})) : 
+                            sessionStorage.setItem("user",
+                                JSON.stringify({...JSON.parse(sessionStorage.getItem("user")), lastName: result.body.lastName}))
+                        dispatch(profileEditAction({lastName: result.body.lastName}))
+                    }
                 }
             }else{
-                const result = await api.patchUserProfile(data.firstName, data.lastName, header)
-                if(result.status === 200){
-                    rememberUser ? 
-                        localStorage.setItem("user",
-                            JSON.stringify({...JSON.parse(localStorage.getItem("user")),
-                                firstName: result.body.firstName, lastName: result.body.lastName})) : 
-                        sessionStorage.setItem("user",
-                            JSON.stringify({...JSON.parse(sessionStorage.getItem("user")),
-                                firstName: result.body.firstName, lastName: result.body.lastName}))
-                    dispatch(profileEditAction({firstName: result.body.firstName, lastName: result.body.lastName}))
+                if(data.lastName === ''){
+                    dispatch(fetchingAction())
+                    const result = await api.patchUserProfile(data.firstName, user.lastName, header)
+                    if(result.status === 200){
+                        dispatch(resolvedAction())
+                        rememberUser ? 
+                            localStorage.setItem("user",
+                                JSON.stringify({...JSON.parse(localStorage.getItem("user")), firstName: result.body.firstNameName})) : 
+                            sessionStorage.setItem("user",
+                                JSON.stringify({...JSON.parse(sessionStorage.getItem("user")), firstName: result.body.firstName}))
+                        dispatch(profileEditAction({firstName: result.body.firstName}))
+                    }
+                }else{
+                    dispatch(fetchingAction())
+                    const result = await api.patchUserProfile(data.firstName, data.lastName, header)
+                    if(result.status === 200){
+                        dispatch(resolvedAction())
+                        rememberUser ? 
+                            localStorage.setItem("user",
+                                JSON.stringify({...JSON.parse(localStorage.getItem("user")),
+                                    firstName: result.body.firstName, lastName: result.body.lastName})) : 
+                            sessionStorage.setItem("user",
+                                JSON.stringify({...JSON.parse(sessionStorage.getItem("user")),
+                                    firstName: result.body.firstName, lastName: result.body.lastName}))
+                        dispatch(profileEditAction({firstName: result.body.firstName, lastName: result.body.lastName}))
+                    }
                 }
             }
+        }catch(error){
+            dispatch(rejectedAction({message : "Error: Server issue"}))
         }
-                
+
         reset({
             firstName: "",
             lastName: ""
