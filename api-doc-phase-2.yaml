@@ -39,6 +39,10 @@ paths:
             $ref: '#/definitions/UserAccounts'
         '400':
           description: Invalid Fields
+        '401':
+          description: Authentification failed
+        '403':
+          description: Unauthorized
         '500':
           description: Internal Server Error
   /user/accounts/:accountId/transactions:
@@ -71,6 +75,12 @@ paths:
             $ref: '#/definitions/UserTransactions'
         '400':
           description: Invalid Fields
+        '401':
+          description: Authentification failed
+        '403':
+          description: Unauthorized
+        '404':
+          description: Account not found
         '500':
           description: Internal Server Error
   /user/accounts/:accountId/transactions/:transactionId/notes:
@@ -103,8 +113,12 @@ paths:
             $ref: '#/definitions/UserTransaction'
         '400':
           description: Invalid Fields
+        '401':
+          description: Authentification failed
+        '403':
+          description: Unauthorized
         '404':
-          description: Transaction not found
+          description: Transaction or Account not found
         '500':
           description: Internal Server Error
     delete:
@@ -128,8 +142,12 @@ paths:
             $ref: '#/definitions/UserTransaction'
         '400':
           description: Invalid Fields
+        '401':
+          description: Authentification failed
+        '403':
+          description: Unauthorized
         '404':
-          description: Transaction not found
+          description: Transaction or Account not found
         '500':
           description: Internal Server Error
   /user/accounts/:accountId/transactions/:transactionId/category:
@@ -162,8 +180,12 @@ paths:
             $ref: '#/definitions/UserTransaction'
         '400':
           description: Invalid Fields
+        '401':
+          description: Authentification failed
+        '403':
+          description: Unauthorized
         '404':
-          description: Transaction not found
+          description: Transaction or Account not found
         '500':
           description: Internal Server Error
   
@@ -219,6 +241,8 @@ definitions:
             type:
               type: string
             category:
+              type: string
+            notes:
               type: string
   UserTransaction:
     type: object
