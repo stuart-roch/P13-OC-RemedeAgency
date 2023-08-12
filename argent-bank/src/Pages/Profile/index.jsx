@@ -7,7 +7,7 @@ import Loader from "../../Components/Loader"
 import { profileInitAction, profileStartEditAction } from "../../features/profile" 
 import { useEffect } from "react"
 import { fetchingAction, resolvedAction, rejectedAction, voidAction } from "../../utils/store/store"
-import { connexionLoginAction, connexionRememberUserAction } from "../../features/connexion"
+import { connexionLoginAction, connexionLogoutAction, connexionRememberUserAction } from "../../features/connexion"
 
 
 const accounts = [
@@ -35,7 +35,7 @@ function Profile({api}){
     const isLogged = useSelector(state => state.connexion.isLogged)
     const user = useSelector(state => state.profile.user)
     const rememberUser = useSelector(state => state.connexion.rememberUser)
-    const isLoading = useSelector(state => state.fetch.status === "pending")
+    const isLoading = useSelector(state => (state.fetch.status === "pending" || state.fetch.status === "updating"))
     const hasError = useSelector(state => state.fetch.error !== null)
     const error = useSelector(state => state.fetch.error)
     let errMsg
@@ -45,17 +45,22 @@ function Profile({api}){
 
     useEffect(() => {
 
-        if(localStorage.length !== 0){
+        if(localStorage.length !== 0 && sessionStorage.length === 0){
             dispatch(connexionLoginAction())
             dispatch(connexionRememberUserAction())
             dispatch(profileInitAction(JSON.parse(localStorage.getItem("user"))))
             dispatch(voidAction())
-        }else if(sessionStorage.length !== 0){
+        }else if(sessionStorage.length !== 0 && localStorage.length === 0){
             dispatch(connexionLoginAction())
             dispatch(profileInitAction(JSON.parse(sessionStorage.getItem("user"))))
             dispatch(voidAction())
+        }else{
+            dispatch(connexionLogoutAction())
+            dispatch(voidAction())
+            localStorage.clear()
+            sessionStorage.clear()
         }
-
+        
     },[dispatch])
 
     useEffect(() => {
@@ -70,7 +75,11 @@ function Profile({api}){
                 const result = await api.postUserProfile(header)
                 
                 if(result.status > 200){
-                    dispatch(rejectedAction(result))
+                    if(result.status === 401 || result.status === 403){
+                        dispatch(rejectedAction({message: "Error: Unauthorized"}))
+                    }else{
+                        dispatch(rejectedAction(result))
+                    }
                 }else{
                     const user = { id: result.body.id, firstName: result.body.firstName, lastName: result.body.lastName }
                     if(rememberUser){
@@ -96,30 +105,30 @@ function Profile({api}){
     return !isLogged ? 
     (<Navigate to="/signIn" />)
     :
-    (isLoading ? <Container> <Loader className="profile-loader"/> </Container> : !(hasError && errMsg === "Server issue") ?
-        (<Container>
-            <div className="header">
-            {isEditing ? 
-                (<>
-                    <h1>Welcome back</h1>
-                    <EditProfileForm api={api} user={user} rememberUser={rememberUser}/>
-                </>) :
-                (<>
-                    <h1>Welcome back<br />{`${user.firstName} ${user.lastName}!`}</h1>
-                    <button className="edit-button" onClick={() => dispatch(profileStartEditAction())}>Edit Name</button>
-                </>)
-                }
-            </div>
-            {accounts.map(
-                account => 
-                    <AccountElement key={account.title} title={account.title} amount={account.amount} description={account.description}/>
-                    )
-                }
-        </Container>) :
-        (<Container>
-            <p className="err-msg">Problème technique, veuillez rafraichir la page</p>
-        </Container>)
-    )
+    (<Container>
+        {isLoading && <Loader />}
+        {(hasError && errMsg === "Server issue") && <p className="err-msg">Problème technique, veuillez nous excuser pour la gêne occassionné</p>}
+        {(hasError && errMsg === "Unauthorized") && <p className="err-msg">Contenu non autorisé</p>}
+        {!isLoading && !hasError && <>
+        <div className="header">
+        {isEditing ? 
+            (<>
+                <h1>Welcome back</h1>
+                <EditProfileForm api={api} user={user} rememberUser={rememberUser}/>
+            </>) :
+            (<>
+                <h1>Welcome back<br />{`${user.firstName} ${user.lastName}!`}</h1>
+                <button className="edit-button" onClick={() => dispatch(profileStartEditAction())}>Edit Name</button>
+            </>)
+            }
+        </div>
+        {accounts.map(
+            account => 
+                <AccountElement key={account.title} title={account.title} amount={account.amount} description={account.description}/>
+                )
+            }
+        </>}
+    </Container>)
 }
 
 const Container = styled.main`

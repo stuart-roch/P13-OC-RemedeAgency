@@ -1,9 +1,10 @@
 import styled from "styled-components"
 import LoginForm from "../../Components/LoginForm"
-import { connexionLoginAction, connexionRememberUserAction } from "../../features/connexion"
+import { connexionLoginAction, connexionRememberUserAction, connexionLogoutAction } from "../../features/connexion"
 import { useSelector, useDispatch } from "react-redux"
 import { Navigate } from "react-router-dom"
 import { profileInitAction } from "../../features/profile"
+import { voidAction } from "../../utils/store/store"
 import { useEffect } from "react"   
 
 
@@ -19,14 +20,23 @@ function SignIn({api}){
     }
 
     useEffect(() => {
-        if(localStorage.length !== 0){
+
+        if(localStorage.length !== 0 && sessionStorage.length === 0){
             dispatch(connexionLoginAction())
             dispatch(connexionRememberUserAction())
             dispatch(profileInitAction(JSON.parse(localStorage.getItem("user"))))
-        }else if(sessionStorage.length !== 0){
+            dispatch(voidAction())
+        }else if(sessionStorage.length !== 0 && localStorage.length === 0){
             dispatch(connexionLoginAction())
             dispatch(profileInitAction(JSON.parse(sessionStorage.getItem("user"))))
+            dispatch(voidAction())
+        }else{
+            dispatch(connexionLogoutAction())
+            dispatch(voidAction())
+            localStorage.clear()
+            sessionStorage.clear()
         }
+
     },[dispatch])
     
     return isLogged ? 
