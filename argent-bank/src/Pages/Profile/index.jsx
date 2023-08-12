@@ -67,9 +67,9 @@ function Profile({api}){
 
         async function fetchData(){
 
-            const header = rememberUser ? 
+            const header = localStorage.length !== 0 ? 
                 {'Authorization': `Bearer ${localStorage.getItem("token")}`}:
-                {'Authorization': `Bearer ${sessionStorage.getItem("token")}`}            
+                {'Authorization': `Bearer ${sessionStorage.getItem("token")}`}         
             try{
                 dispatch(fetchingAction())
                 const result = await api.postUserProfile(header)
@@ -82,7 +82,7 @@ function Profile({api}){
                     }
                 }else{
                     const user = { id: result.body.id, firstName: result.body.firstName, lastName: result.body.lastName }
-                    if(rememberUser){
+                    if(localStorage !== 0){
                         localStorage.setItem("user",JSON.stringify(user))    
                     }else{
                         sessionStorage.setItem("user",JSON.stringify(user))

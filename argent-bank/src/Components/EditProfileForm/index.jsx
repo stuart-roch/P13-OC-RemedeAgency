@@ -36,11 +36,13 @@ const EditProfileForm = ({api, user, rememberUser}) => {
                     const result = await api.patchUserProfile(data.firstName, user.lastName, header)
                     if(result.status === 200){
                         dispatch(resolvedAction())
-                        rememberUser ? 
+                        if(rememberUser){
                             localStorage.setItem("user",
-                                JSON.stringify({...JSON.parse(localStorage.getItem("user")), firstName: result.body.firstNameName})) : 
+                                JSON.stringify({...JSON.parse(localStorage.getItem("user")), firstName: result.body.firstName})) 
+                        }else{ 
                             sessionStorage.setItem("user",
                                 JSON.stringify({...JSON.parse(sessionStorage.getItem("user")), firstName: result.body.firstName}))
+                        }
                         dispatch(profileEditAction({firstName: result.body.firstName}))
                     }
                 }else{
@@ -73,7 +75,6 @@ const EditProfileForm = ({api, user, rememberUser}) => {
         <StyledForm onSubmit={handleSubmit(onSubmit)}>
             <div className="inputs-wrapper">
                 <div className="input-wrapper">
-                    {/*<label htmlFor="firstName" hidden>Firstname</label>*/}
                     <input 
                     type="text" 
                     id="firstName" 
@@ -86,7 +87,6 @@ const EditProfileForm = ({api, user, rememberUser}) => {
                     {errors?.firstName && <p className="error-msg">{errors.firstName.message}</p>}
                 </div>  
                 <div className="input-wrapper">
-                    {/*<label htmlFor="lastName">Lastname</label>*/}
                     <input 
                     type="text" 
                     id="lastName" 
